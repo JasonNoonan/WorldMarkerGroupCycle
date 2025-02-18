@@ -1,0 +1,129 @@
+local addonName = ...
+local WorldMarkerGroupCycle = {}
+local Manager = {}
+
+local worldMarkers = {
+  square = "|T137006:12|t",
+  triangle = "|T137004:12|t",
+  diamond = "|T137003:12|t",
+  cross = "|T137007:12|t",
+  star = "|T137001:12|t",
+  circle = "|T137002:12|t",
+  moon = "|T137005:12|t",
+  skull = "|T137008:12|t"
+}
+
+local defaultWorldMarkerOrder = {
+  worldMarkers.square, worldMarkers.triangle, worldMarkers.diamond,
+  worldMarkers.cross, worldMarkers.star, worldMarkers.circle,
+  worldMarkers.moon, worldMarkers.skull
+}
+
+EventUtil.ContinueOnAddOnLoaded(addonName, function()
+  WorldMarkerGroupCycleDB = WorldMarkerGroupCycleDB or {};
+  
+  if WorldMarkerGroupCycleDB.profiles == nil then
+    WorldMarkerGroupCycleDB.profiles = {}
+    WorldMarkerGroupCycleDB.profiles["default"] = {}
+    WorldMarkerGroupCycleDB.currentProfile = "default"
+  end
+  
+  for _profile_name, profile in pairs(WorldMarkerGroupCycleDB.profiles) do
+    if profile.worldMarkerOrder == nil then
+      profile.worldMarkerOrder = {1, 2, 3, 4, 5, 6, 7, 8}
+    end
+  end
+  
+  WorldMarkerGroupCycle:CreateSettings()
+end)
+
+function WorldMarkerGroupCycle:CreateSettings()
+  WorldMarkerGroupCycle:CreateMainCategory()
+  WorldMarkerGroupCycle:CreateOrderingCategory()
+  WorldMarkerGroupCycle:CreateProfileCategory()
+  WorldMarkerGroupCycle:LoadDropdownListsForProfile(Manager.profileSetting:GetValue())
+end
+
+function WorldMarkerGroupCycle:CreateMainCategory()
+  local profile = WorldMarkerGroupCycleDB.profiles[WorldMarkerGroupCycleDB.currentProfile]
+  local rootCategory, layout = Settings.RegisterVerticalLayoutCategory("World Marker Group Cycle");
+  rootCategory.ID = "World Marker Group Cycle";
+  Settings.RegisterAddOnCategory(rootCategory);
+  Manager.rootCategory = rootCategory;
+end
+
+function WorldMarkerGroupCycle:CreateProfileCategory()
+  local category, layout = Settings.RegisterVerticalLayoutSubcategory(Manager.rootCategory, "Profile")
+
+  local function GetOptions()
+    local container = Settings.CreateControlTextContainer();
+    for name, data in pairs(WorldMarkerGroupCycleDB.profiles) do
+      container:Add(name, name); 
+    end
+
+    return container:GetData();
+  end
+
+  Manager.profileSetting = Settings.RegisterAddOnSetting(category, "WORLD_MARKER_CYCLE_PROFILE", "currentProfile", WorldMarkerGroupCycleDB, Settings.VarType.String, "Profile:", WorldMarkerGroupCycleDB.currentProfile)
+
+  Manager.profileSetting:SetValueChangedCallback(function(s, value) 
+    WorldMarkerGroupCycleDB.currentProfile = value
+    WorldMarkerGroupCycle:LoadDropdownListsForProfile(Manager.profileSetting:GetValue())    
+  end)
+
+  Settings.CreateDropdown(category, Manager.profileSetting, GetOptions)
+end
+
+function WorldMarkerGroupCycle:CreateOrderingCategory()
+  local category, layout = Settings.RegisterVerticalLayoutSubcategory(Manager.rootCategory, "Ordering")
+  Manager.orderingCategory = category
+  Manager.cycleMarkers = {}
+  Manager.cycleMarkerSettings = {}
+
+  local function GetOptions()
+    local container = Settings.CreateControlTextContainer();
+    -- Want a default empty option
+    container:Add(0, nil)
+
+    for marker, symbol in pairs(defaultWorldMarkerOrder) do
+      container:Add(marker, symbol);
+    end
+    
+    return container:GetData();
+  end
+  
+  
+  for k=1, 8 do
+    local setting = Settings.RegisterAddOnSetting(Manager.orderingCategory, "WORLD_MARKER_"..k, k, Manager.cycleMarkers, Settings.VarType.Number, "#"..k, k)
+    tinsert(Manager.cycleMarkerSettings, setting)
+    
+    setting:SetValueChangedCallback(function(s, value) 
+      local profile = Manager.profileSetting:GetValue()
+      print("profile is now "..profile)
+      profile = WorldMarkerGroupCycleDB.profiles[profile]
+
+      if(value == 0 and profile.worldMarkerOrder[k] ~= nil) then
+        table.remove(profile.worldMarkerOrder, k)
+      else
+        profile.worldMarkerOrder[k] = value
+      end
+      print(value)
+    end)
+    
+    Settings.CreateDropdown(Manager.orderingCategory, setting, GetOptions)
+  end
+end
+
+function WorldMarkerGroupCycle:LoadDropdownListsForProfile(profile)
+  print("Populating dropdowns for "..profile)
+  profile = WorldMarkerGroupCycleDB.profiles[profile]
+  Manager.cycleMarkers = {}
+  for k, v in ipairs(profile) do
+    tinsert(Manager.cycleMarkers, v)
+  end
+end
+
+SLASH_WORLDMARKERGROUPCYCLE1, SLASH_WORLDMARKERGROUPCYCLE2 = '/wmgc', '/worldmarkergroupcycle'
+SlashCmdList.WORLDMARKERGROUPCYCLE = function(msg)
+  Settings.OpenToCategory(Manager.orderingCategory:GetID())
+end

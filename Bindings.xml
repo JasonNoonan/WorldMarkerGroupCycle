@@ -1,0 +1,6 @@
+<Bindings>
+	<Binding name="WORLDMARKERGROUPCYCLENEXT" category="World Marker Rotation Group">
+	</Binding>
+	<Binding name="WORLDMARKERGROUPCYCLECLEAR" category="World Marker Rotation Group">
+	</Binding>
+</Bindings>
