@@ -5,17 +5,22 @@ function addon.Addon:HandleCommand(input)
 	local command, arg = addon.Addon:GetArgs(input, 2)
 
 	if not command or command:trim() == "" then
-		local profile = addon.Addon.currentProfile
-		addon.Addon:PrintOrderedTable(addon.Addon.profiles[profile].worldMarkerOrder)
-	elseif command == "list" then
-		local names = addon.Addon:GetProfileNames()
-		addon.Addon:PrintOrderedTable(names)
-		addon.Addon:Print("Number of profiles: " .. #names)
-	elseif command == "profiles" then
 		addon.Addon:OpenProfilesFrame()
+	elseif command == "list" then
+		local names, _ = addon.db:GetProfiles()
+		addon.Addon:PrintOrderedTable(names)
+	elseif command == "print" then
+		local markers = addon.Settings.worldMarkerPrintOrder
+		local toPrint = {}
+
+		for _, v in ipairs(addon.db.profile.worldMarkerOrder) do
+			table.insert(toPrint, markers[v])
+		end
+
+		print(table.concat(toPrint, " "))
 	elseif command == "switch" then
-		addon.Addon:SwitchProfile(arg)
+		addon.db:SetProfile(arg)
 	elseif command == "new" then
-		addon.Addon:SwitchProfile(arg)
+		addon.db:SetProfile(arg)
 	end
 end

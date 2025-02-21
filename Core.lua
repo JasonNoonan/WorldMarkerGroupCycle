@@ -1,14 +1,13 @@
 local _, addon = ...
 
 function addon.Addon:UpdateSecureButton()
-	local profile = addon.Addon.profiles[addon.Addon.currentProfile]
+	local profile = addon.db.profile
 	local body = "i = 0;order = newtable()"
 	for _, value in ipairs(profile.worldMarkerOrder) do
 		body = body .. format("tinsert(order, %s)", value)
 	end
 
 	local button = addon.Addon.SecureButton
-	ClearOverrideBindings(button)
 	SecureHandlerExecute(button, body)
 	SecureHandlerUnwrapScript(button, "PreClick")
 	SecureHandlerWrapScript(
@@ -35,7 +34,7 @@ function WMGCycle_Run()
 	local place_key, place_key2 = GetBindingKey("WORLDMARKERGROUPCYCLENEXT")
 	local reset_key, reset_key2 = GetBindingKey("WORLDMARKERGROUPCYCLECLEAR")
 	local button = addon.Addon.SecureButton
-	print(table.concat(button, " || "))
+	ClearOverrideBindings(button)
 	SetOverrideBindingClick(button, true, place_key, button:GetName(), "place")
 	SetOverrideBindingClick(button, true, reset_key, button:GetName(), "reset")
 end

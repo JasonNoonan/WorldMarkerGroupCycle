@@ -1,8 +1,6 @@
 <Bindings>
 	<Binding name="WORLDMARKERGROUPCYCLENEXT" category="World Marker Rotation Group">
-		WMGCycle_Run()
 	</Binding>
 	<Binding name="WORLDMARKERGROUPCYCLECLEAR" category="World Marker Rotation Group">
-		WMGCycle_Run()
 	</Binding>
 </Bindings>

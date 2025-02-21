@@ -23,9 +23,9 @@ local WorldMarkerOptions = {
 	[8] = addon.Settings.worldMarkers.skull,
 }
 
-function RenderWorldMarkerDropdown(container, profile)
+function RenderWorldMarkerDropdown(container)
 	local options = WorldMarkerOptions
-	for k, v in ipairs(addon.Addon.profiles[profile].worldMarkerOrder) do
+	for k, v in ipairs(addon.db.profile.worldMarkerOrder) do
 		local localGroup = AceGUI:Create("SimpleGroup")
 		localGroup:SetLayout("Flow")
 
@@ -34,9 +34,8 @@ function RenderWorldMarkerDropdown(container, profile)
 		dropdown:SetList(options)
 		dropdown:SetValue(v)
 		dropdown:SetCallback("OnValueChanged", function(widget, event, marker)
-			local order = addon.Addon.profiles[profile].worldMarkerOrder
-			order[k] = marker
-			addon.Addon:UpdateProfile(profile, order)
+			addon.db.profile.worldMarkerOrder[k] = marker
+			addon.Addon:UpdateProfile()
 		end)
 
 		localGroup:AddChild(dropdown)
@@ -46,12 +45,11 @@ function RenderWorldMarkerDropdown(container, profile)
 		removeButton:SetText("-")
 		removeButton:SetRelativeWidth(0.15)
 		removeButton:SetCallback("OnClick", function(widget, event)
-			local order = addon.Addon.profiles[profile].worldMarkerOrder
-			table.remove(order, k)
-			addon.Addon:UpdateProfile(profile, order)
+			table.remove(addon.db.profile.worldMarkerOrder, k)
+			addon.Addon:UpdateProfile()
 
 			container:ReleaseChildren()
-			ShowProfileData(container, profile)
+			ShowProfileData(container)
 		end)
 		localGroup:AddChild(removeButton)
 	end
@@ -60,23 +58,23 @@ function RenderWorldMarkerDropdown(container, profile)
 	addNewButton:SetWidth(90)
 	addNewButton:SetText("+")
 	addNewButton:SetCallback("OnClick", function(widget, event)
-		local order = addon.Addon.profiles[profile].worldMarkerOrder
+		local order = addon.db.profile.worldMarkerOrder
 		table.insert(order, 1)
 		addon.Addon:UpdateProfile(profile, order)
 
 		container:ReleaseChildren()
-		ShowProfileData(container, profile)
+		ShowProfileData(container)
 	end)
 
 	container:AddChild(addNewButton)
 end
 
-function ShowProfileData(container, profile)
-	RenderWorldMarkerDropdown(container, profile)
+function ShowProfileData(container)
+	RenderWorldMarkerDropdown(container)
 end
 
 function ProfileOptions()
-	local names = addon.Addon:GetProfileNames()
+	local names, _ = addon.db:GetProfiles()
 	return getOptions(names)
 end
 
@@ -95,18 +93,18 @@ function ProfilesFrame()
 	ddGroup:SetTitle("Profile:")
 	ddGroup:SetDropdownWidth(150)
 	ddGroup:SetGroupList(options)
-	ddGroup:SetGroup(addon.Addon.currentProfile)
-	ddGroup:SetStatusTable(addon.Addon.profiles[addon.Addon.currentProfile].worldMarkerOrder)
+	ddGroup:SetGroup(addon.db:GetCurrentProfile())
+	ddGroup:SetStatusTable(addon.db.profile.worldMarkerOrder)
 	ddGroup:SetCallback("OnGroupSelected", function(widget, event, group)
-		addon.Addon:SwitchProfile(group)
+		addon.db:SetProfile(group)
 		widget:ReleaseChildren()
 
-		ShowProfileData(widget, group)
+		ShowProfileData(widget)
 	end)
 
 	frame:AddChild(ddGroup)
 
-	ShowProfileData(ddGroup, addon.Addon.currentProfile)
+	ShowProfileData(ddGroup)
 end
 
 function addon.Addon:OpenProfilesFrame()
