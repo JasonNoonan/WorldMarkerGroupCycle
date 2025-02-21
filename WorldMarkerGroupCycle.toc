@@ -21,4 +21,8 @@
 embeds.xml
 
 Settings.lua
+Utils.lua
+GUI.lua
+Initialization.lua
+Console.lua
 Core.lua
