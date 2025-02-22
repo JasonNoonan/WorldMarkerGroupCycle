@@ -83,13 +83,19 @@ function RenderWorldMarkerDropdown(container)
 	scroll:AddChild(addNewButton)
 end
 
-function createNewProfile(name, container)
-	addon.db:SetProfile(name)
-	container:SetTree(GetProfileTree())
-	container:SelectByValue(container)
+function getProfileNameOptions()
+	local names, _ = addon.db:GetProfiles()
+
+	local options = {}
+
+	for _, v in ipairs(names) do
+		options[v] = v
+	end
+
+	return options
 end
 
-function NewProfileFrame(container)
+function ManageProfileFrame(container)
 	container:ReleaseChildren()
 
 	local frame = AceGUI:Create("SimpleGroup")
@@ -98,30 +104,57 @@ function NewProfileFrame(container)
 	frame:SetLayout("Flow")
 	container:AddChild(frame)
 
+	local newProfileHeader = AceGUI:Create("Heading")
+	newProfileHeader:SetFullWidth(true)
+	newProfileHeader:SetText("Create New Profile")
+	frame:AddChild(newProfileHeader)
+
 	local profileName = AceGUI:Create("EditBox")
-	profileName:SetRelativeWidth(1 / 2)
-	profileName:SetLabel(L["Profile Name"])
+	profileName:SetRelativeWidth(3 / 5)
+	profileName:SetLabel("Profile Name")
 	profileName:SetText("NewProfile")
 	profileName:SetCallback("OnEnterPressed", function(self)
-		createNewProfile(self:GetText(), container)
-	end)
-
-	local okay = AceGUI:Create("Button")
-	okay:SetRelativeWidth(1 / 3)
-	okay:SetText(L["Create"])
-	okay:SetCallback("OnClick", function(_)
-		createNewProfile(profileName:GetText(), container)
+		local name = self:GetText()
+		addon.db:SetProfile(name)
+		container:SetTree(GetProfileTree())
+		container:SelectByValue(name)
 	end)
 
 	frame:AddChild(profileName)
-	frame:AddChild(okay)
+	profileName:SetFocus()
+
+	local deleteProfileHeader = AceGUI:Create("Heading")
+	deleteProfileHeader:SetFullWidth(true)
+	deleteProfileHeader:SetText("Delete Profile")
+	frame:AddChild(deleteProfileHeader)
+
+	local profileToDelete
+	local profilesList = AceGUI:Create("Dropdown")
+	profilesList:SetRelativeWidth(3 / 5)
+	profilesList:SetLabel("Profiles")
+	profilesList:SetList(getProfileNameOptions())
+	profilesList:SetItemDisabled(addon.db:GetCurrentProfile(), true)
+	profilesList:SetCallback("OnValueChanged", function(_, _, profile)
+		profileToDelete = profile
+	end)
+
+	local deleteButton = AceGUI:Create("Button")
+	deleteButton:SetText("Delete")
+	deleteButton:SetRelativeWidth(1 / 5)
+	deleteButton:SetCallback("OnClick", function()
+		addon.db:DeleteProfile(profileToDelete, true)
+		ManageProfileFrame(container)
+	end)
+
+	frame:AddChild(profilesList)
+	frame:AddChild(deleteButton)
 end
 
 function GetProfileTree()
 	local tree = {
 		{
-			value = "New Profile",
-			text = "New Profile",
+			value = "Manage Profiles",
+			text = "Manage Profiles",
 		},
 	}
 
@@ -142,8 +175,8 @@ function ProfileTrees(parent)
 	profileTree:SetTree(GetProfileTree())
 	profileTree:SelectByValue(addon.db:GetCurrentProfile())
 	profileTree:SetCallback("OnGroupSelected", function(widget, _, profile)
-		if profile == "New Profile" then
-			NewProfileFrame(widget)
+		if profile == "Manage Profiles" then
+			ManageProfileFrame(widget)
 		else
 			if profile ~= addon.db:GetCurrentProfile() then
 				addon.db:SetProfile(profile)
