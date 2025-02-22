@@ -78,15 +78,7 @@ function ProfileOptions()
 	return getOptions(names)
 end
 
-function ProfilesFrame()
-	local frame = AceGUI:Create("Frame")
-	frame:SetTitle("World Marker Group Cycle")
-	frame:SetWidth(300)
-	frame:SetCallback("OnClose", function(widget)
-		AceGUI:Release(widget)
-	end)
-	frame:SetLayout("Fill")
-
+function ProfilesFrame(parent)
 	local options = ProfileOptions()
 	local ddGroup = AceGUI:Create("DropdownGroup")
 
@@ -102,11 +94,20 @@ function ProfilesFrame()
 		ShowProfileData(widget)
 	end)
 
-	frame:AddChild(ddGroup)
-
+	parent:AddChild(ddGroup)
 	ShowProfileData(ddGroup)
 end
 
 function addon.Addon:OpenProfilesFrame()
-	ProfilesFrame()
+	local frame = AceGUI:Create("Frame")
+	frame:SetTitle("World Marker Group Cycle")
+	frame:SetWidth(300)
+	frame:SetCallback("OnClose", function(widget)
+		AceGUI:Release(widget)
+	end)
+	frame:SetLayout("Fill")
+	_G["WMGCProfileFrame"] = frame.frame
+	tinsert(UISpecialFrames, "WMGCProfileFrame")
+
+	ProfilesFrame(frame)
 end
