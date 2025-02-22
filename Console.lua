@@ -5,7 +5,7 @@ function addon.Addon:HandleCommand(input)
 	local command, arg = addon.Addon:GetArgs(input, 2)
 
 	if not command or command:trim() == "" then
-		addon.Addon:OpenProfilesFrame()
+		addon.Addon:OpenProfilesTreeFrame()
 	elseif command == "list" then
 		local names, _ = addon.db:GetProfiles()
 		addon.Addon:PrintOrderedTable(names)
