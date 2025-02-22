@@ -18,3 +18,4 @@ World Marker Group Cycle comes with a few console commands:
 - `/wmgc print` - Print the marker order for your currently selected profile
 - `/wmgc new <profile_name>` - Create a new profile named `<profile_name>`, and switch to it.
 - `/wmgc switch <profile_name>` - Switch to the named profile. Both `new` and `switch` use the `AceDB:SetProfile()` function behind the scenes, so technically these two options behave the same.
+- `/wmgc delete <profile_name>` - Delete the named profile. Silently fails if the profile doesn't exist. Cannot be the current profile.

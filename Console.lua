@@ -22,5 +22,7 @@ function addon.Addon:HandleCommand(input)
 		addon.db:SetProfile(arg)
 	elseif command == "new" then
 		addon.db:SetProfile(arg)
+	elseif command == "delete" then
+		addon.db:DeleteProfile(arg, true)
 	end
 end
